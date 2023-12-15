@@ -63,7 +63,6 @@ def get_hh_dict(hh_search_field,hh_area,hh_period):
             page += 1
             hh_dict[language]["vacancies_found"] += len(page_payload['items'])
             for vacancy in page_payload["items"]:
-                print(vacancy)
                 salary = predict_rub_salary_hh(vacancy)
                 if salary is not None:
                     total_salary += salary
