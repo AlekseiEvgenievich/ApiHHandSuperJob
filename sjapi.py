@@ -1,15 +1,15 @@
-import requests
-import pathlib
 import json
-from urllib.parse import unquote
-from urllib.parse import urlsplit
+import os
+import pathlib
 import time
 from datetime import datetime, timedelta
-import os
-from terminaltables import AsciiTable
-from dotenv  import load_dotenv
+from urllib.parse import unquote, urlsplit
 
-   
+import requests
+from dotenv import load_dotenv
+from terminaltables import AsciiTable
+
+
 def predict_salary(salary_from, salary_to):
     if salary_from is not None and salary_to is not None:
         if salary_from == 0 and salary_to == 0:
