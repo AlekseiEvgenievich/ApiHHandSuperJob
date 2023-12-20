@@ -132,7 +132,6 @@ if __name__ == '__main__':
     sj_town = os.environ["SJ_TOWN"]
     
     hh_search_field = os.environ["HH_SEARCH_FIELD"]
-    print(hh_search_field)
     hh_area = os.environ["HH_AREA"]
     hh_period = os.environ["HH_PERIOD"]
     
