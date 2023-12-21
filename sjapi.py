@@ -1,9 +1,6 @@
-import json
 import os
-import pathlib
 import time
 from datetime import datetime, timedelta
-from urllib.parse import unquote, urlsplit
 
 import requests
 from dotenv import load_dotenv
@@ -34,9 +31,12 @@ def predict_rub_salary_hh(vacancy):
     return None
 
 
-def get_hh_job_data():
+def get_hh_programming_vacancies_data():
     languages = ['Python', 'Java', 'C++', 'JavaScript','C#','C','ruby','go', '1c', 'PHP','Shell', 'Scala', 'Swift']
-    hh_job_data = {}
+    city_id = 1
+    search_period = 30
+    min_timeout = 0.1
+    hh_programming_vacancies_data = {}
     hh_url = 'https://api.hh.ru/vacancies/'
     for language in languages:
         url = 'https://api.hh.ru/vacancies/'
@@ -46,43 +46,47 @@ def get_hh_job_data():
         page = 0
         pages_number = 1
         while page < pages_number:
-            time.sleep(0.1)
-            page_response = requests.get(hh_url, params={'page': page,'text': language,'search_field': 'name', 'area':1,
-            'period':30})
+            time.sleep(min_timeout)
+            page_response = requests.get(hh_url, params={'page': page,'text': language,'search_field': 'name', 'area':city_id,
+            'period':search_period})
             page_response.raise_for_status()
             page_payload = page_response.json()
             pages_number = page_payload['pages']
             page += 1
-            vacancies_found += len(page_payload['items'])
+            #vacancies_found += len(page_payload['items'])
             for vacancy in page_payload["items"]:
                 salary = predict_rub_salary_hh(vacancy)
                 if salary:
                     total_salary += salary
                     total_count += 1
-        if total_count > 0:
+        total_vacancies_found = page_payload['found']
+        if total_count:
             average_salary = total_salary // total_count
         else:
             average_salary = 0
             
-        hh_job_data[language] = {
-            "vacancies_found": vacancies_found,
+        hh_programming_vacancies_data[language] = {
+            "vacancies_found": total_vacancies_found,
             "vacancies_processed": total_count,
             "average_salary": average_salary
         }
-    return hh_job_data
+    return hh_programming_vacancies_data
 
 
-def get_sj_job_data(sj_token):
+def get_sj_programming_vacancies_data(sj_token):
     superjob_url = 'https://api.superjob.ru/2.0/vacancies/'
     headers = {
         'X-Api-App-Id': sj_token
     }
+    industry_catalogue_id = 48
+    city_id = 4
+    search_in_text_block = 1
     current_date = datetime.now()
     one_month_ago = current_date - timedelta(days=30)
-    unixtime_one_month_ago = int(time.mktime(one_month_ago.timetuple()))
+    timestamp_one_month_ago = int(time.mktime(one_month_ago.timetuple()))
     
     languages = ['Python', 'Java', 'C++', 'JavaScript','C#','C','ruby','go', '1c', 'PHP','Shell', 'Scala', 'Swift']
-    sj_job_data = {}
+    sj_programming_vacancies_data = {}
     for language in languages:
         page = 0
         total_salary = 0
@@ -91,16 +95,16 @@ def get_sj_job_data(sj_token):
         while True:
             response = requests.get(superjob_url,  headers=headers,params={
                 'page': page,
-                'catalogues': 48,
-                'date_published_from': unixtime_one_month_ago,
-                't':4,
-                'srws': 1,
+                'catalogues': industry_catalogue_id,
+                'date_published_from': timestamp_one_month_ago,
+                't':city_id,
+                'srws': search_in_text_block,
                 'skwc': 'AND',
                 'keys': language
             })
             response.raise_for_status()
             page_payload = response.json()
-            vacancies_found += len(page_payload['objects'])
+            #vacancies_found += len(page_payload['objects'])
             for vacancy in page_payload['objects']:
                 salary = predict_rub_salary_sj(vacancy)
                 if salary:
@@ -109,41 +113,41 @@ def get_sj_job_data(sj_token):
             if not page_payload['more']:
                 break
             page += 1
-        if total_count > 0:
+        total_vacancies_found = page_payload['total']
+        if total_count:
             average_salary = total_salary // total_count
         else:
             average_salary = 0
         
-        sj_job_data[language] = {
-            "vacancies_found": vacancies_found,
+        sj_programming_vacancies_data[language] = {
+            "vacancies_found": total_vacancies_found,
             "vacancies_processed": total_count,
             "average_salary": average_salary
         }
-    return sj_job_data
+    return sj_programming_vacancies_data
 
 
-def get_table(dict):
-    languages = ['Python', 'Java', 'C++', 'JavaScript','C#','C','ruby','go', '1c', 'PHP','Shell', 'Scala', 'Swift']
-    table_data = [["languages","vacancies_found","vacancies_processed","average_salary"]]
-    for language,vacancies in dict.items():
-        table_data.append([language,vacancies['vacancies_found'], vacancies['vacancies_processed'],vacancies['average_salary']])
-    return table_data
+def get_language_vacancy_stats(programming_vacancies_data):
+    language_vacancy_stats = [["languages","vacancies_found","vacancies_processed","average_salary"]]
+    for language,vacancies in programming_vacancies_data.items():
+        language_vacancy_stats.append([language,vacancies['vacancies_found'], vacancies['vacancies_processed'],vacancies['average_salary']])
+    return language_vacancy_stats
     
 
 if __name__ == '__main__':
     load_dotenv()
     sj_token = os.environ["SJ_TOKEN"]
     
-    hh_job_data = get_hh_job_data()
-    hh_table = get_table(hh_job_data)
+    hh_programming_vacancies_data = get_hh_programming_vacancies_data()
+    hh_language_vacancy_stats = get_language_vacancy_stats(hh_programming_vacancies_data)
     
-    sj_job_data = get_sj_job_data(sj_token)
-    sj_table = get_table(sj_job_data)
+    sj_programming_vacancies_data = get_sj_programming_vacancies_data(sj_token)
+    sj_language_vacancy_stats = get_language_vacancy_stats(sj_programming_vacancies_data)
     
     hh_tittle = 'HeadHunter Moscow'
-    hh_table_instance = AsciiTable(hh_table,hh_tittle)
-    print(hh_table_instance.table)
+    hh_language_vacancy_stats_instance = AsciiTable(hh_language_vacancy_stats,hh_tittle)
+    print(hh_language_vacancy_stats_instance.table)
     
     sj_tittle = 'SuperJob Moscow'
-    sj_table_instance = AsciiTable(sj_table,sj_tittle)
-    print(sj_table_instance.table)
+    sj_language_vacancy_stats_instance = AsciiTable(sj_language_vacancy_stats,sj_tittle)
+    print(sj_language_vacancy_stats_instance.table)
