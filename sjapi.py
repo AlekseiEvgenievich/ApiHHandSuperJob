@@ -53,7 +53,6 @@ def get_hh_programming_vacancies_data():
             page_payload = page_response.json()
             pages_number = page_payload['pages']
             page += 1
-            #vacancies_found += len(page_payload['items'])
             for vacancy in page_payload["items"]:
                 salary = predict_rub_salary_hh(vacancy)
                 if salary:
@@ -104,7 +103,6 @@ def get_sj_programming_vacancies_data(sj_token):
             })
             response.raise_for_status()
             page_payload = response.json()
-            #vacancies_found += len(page_payload['objects'])
             for vacancy in page_payload['objects']:
                 salary = predict_rub_salary_sj(vacancy)
                 if salary:
