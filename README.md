@@ -5,7 +5,7 @@
 ## Окружение и зависимости
 
 - **Python**: 3.10+
-- **[API HeadHHunter](https://dev.hh.ru)**: апи для хедхантера(работает без токена.
+- **[API HeadHunter](https://dev.hh.ru)**: апи для хедхантера(работает без токена.
 - **[API SuperJob](https://api.superjob.ru)**: апи суперджоба и нужно получить токен
 
 
