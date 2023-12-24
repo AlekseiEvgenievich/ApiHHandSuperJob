@@ -31,12 +31,12 @@ def predict_rub_salary_hh(vacancy):
     return None
 
 
-def get_hh_programming_vacancies_data():
+def process_hh_vacancies():
     languages = ['Python', 'Java', 'C++', 'JavaScript','C#','C','ruby','go', '1c', 'PHP','Shell', 'Scala', 'Swift']
     city_id = 1
     search_period = 30
     min_timeout = 0.1
-    hh_programming_vacancies_data = {}
+    hh_vacancies = {}
     hh_url = 'https://api.hh.ru/vacancies/'
     for language in languages:
         url = 'https://api.hh.ru/vacancies/'
@@ -64,15 +64,15 @@ def get_hh_programming_vacancies_data():
         else:
             average_salary = 0
             
-        hh_programming_vacancies_data[language] = {
+        hh_vacancies[language] = {
             "vacancies_found": total_vacancies_found,
             "vacancies_processed": total_count,
             "average_salary": average_salary
         }
-    return hh_programming_vacancies_data
+    return hh_vacancies
 
 
-def get_sj_programming_vacancies_data(sj_token):
+def process_sj_vacancies(sj_token):
     superjob_url = 'https://api.superjob.ru/2.0/vacancies/'
     headers = {
         'X-Api-App-Id': sj_token
@@ -85,7 +85,7 @@ def get_sj_programming_vacancies_data(sj_token):
     timestamp_one_month_ago = int(time.mktime(one_month_ago.timetuple()))
     
     languages = ['Python', 'Java', 'C++', 'JavaScript','C#','C','ruby','go', '1c', 'PHP','Shell', 'Scala', 'Swift']
-    sj_programming_vacancies_data = {}
+    sj_vacancies = {}
     for language in languages:
         page = 0
         total_salary = 0
@@ -117,12 +117,12 @@ def get_sj_programming_vacancies_data(sj_token):
         else:
             average_salary = 0
         
-        sj_programming_vacancies_data[language] = {
+        sj_vacancies[language] = {
             "vacancies_found": total_vacancies_found,
             "vacancies_processed": total_count,
             "average_salary": average_salary
         }
-    return sj_programming_vacancies_data
+    return sj_vacancies
 
 
 def get_language_vacancy_stats(programming_vacancies_data):
@@ -136,11 +136,11 @@ if __name__ == '__main__':
     load_dotenv()
     sj_token = os.environ["SJ_TOKEN"]
     
-    hh_programming_vacancies_data = get_hh_programming_vacancies_data()
-    hh_language_vacancy_stats = get_language_vacancy_stats(hh_programming_vacancies_data)
+    hh_vacancies = process_hh_vacancies()
+    hh_language_vacancy_stats = get_language_vacancy_stats(hh_vacancies)
     
-    sj_programming_vacancies_data = get_sj_programming_vacancies_data(sj_token)
-    sj_language_vacancy_stats = get_language_vacancy_stats(sj_programming_vacancies_data)
+    sj_vacancies = process_sj_vacancies(sj_token)
+    sj_language_vacancy_stats = get_language_vacancy_stats(sj_vacancies)
     
     hh_tittle = 'HeadHunter Moscow'
     hh_language_vacancy_stats_instance = AsciiTable(hh_language_vacancy_stats,hh_tittle)
